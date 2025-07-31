@@ -1,0 +1,5 @@
+2025-08-01 01:29:01,624 - root - INFO - The execution has started.
+2025-08-01 01:29:01,626 - root - INFO - Reading sql database started
+2025-08-01 01:29:01,638 - root - INFO - Connetion Estabilish
+2025-08-01 01:29:01,820 - root - INFO - Reading completed Mysql Database
+2025-08-01 01:29:01,868 - root - INFO - Data Ingestion is compeleted

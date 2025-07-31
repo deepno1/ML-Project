@@ -23,10 +23,11 @@ def read_sql_data():
             password=password,
             db= db,
         )
-        logging.info('Connetion Estabilish',mysql)
+        logging.info('Connetion Estabilish')
 
         df = pd.read_sql_query('select * from students',mysql)
-        print(df.head())
+        print()
+        print(df.sample(5))
 
         return df
 

@@ -4,10 +4,11 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-Project_name = "ml-project"
+Project_name = "mlproject"
 
 list_of_files = [
     ".github/workflows/.gitkeep",
+    "src/__init__.py",
     "src/{}/__init__.py".format(Project_name),
     "src/{}/components/__init__.py".format(Project_name),
     "src/{}/components/data_ingestion.py".format(Project_name),

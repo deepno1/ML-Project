@@ -17,7 +17,7 @@ class dataIngestion:
     def __init__(self):
         self.ingestionConfig = dataIngestionConfig()
 
-    def init_ingestion (self):
+    def init_ingestion(self):
         try:
             raw_data = read_sql_data()
 
