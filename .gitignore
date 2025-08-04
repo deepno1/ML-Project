@@ -2,3 +2,4 @@ env
 Practice.py
 .env
 __pycache__/
+logs
