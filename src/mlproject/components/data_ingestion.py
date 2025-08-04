@@ -19,7 +19,8 @@ class dataIngestion:
 
     def init_ingestion(self):
         try:
-            raw_data = read_sql_data()
+            #raw_data = read_sql_data()
+            raw_data = pd.read_csv("D:/Python Projects/Projects/MLops-Project/notebook/data/raw.csv")
 
             logging.info("Reading completed Mysql Database")
 
