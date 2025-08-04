@@ -1,5 +1,0 @@
-2025-08-04 20:24:39,452 - root - INFO - The execution has started.
-2025-08-04 20:24:39,482 - root - INFO - Reading completed Mysql Database
-2025-08-04 20:24:39,531 - root - INFO - Data Ingestion is compeleted
-2025-08-04 20:24:39,544 - root - INFO - Reading the train and test file
-2025-08-04 20:24:39,544 - root - INFO - Applying Preprocessing on training and test dataframe

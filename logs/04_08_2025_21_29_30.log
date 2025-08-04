@@ -1,8 +1,0 @@
-2025-08-04 21:29:41,657 - root - INFO - The execution has started.
-2025-08-04 21:29:41,673 - root - INFO - Reading completed Mysql Database
-2025-08-04 21:29:41,704 - root - INFO - Data Ingestion is compeleted
-2025-08-04 21:29:41,704 - root - INFO - Reading the train and test file
-2025-08-04 21:29:41,704 - root - INFO - Applying Preprocessing on training and test dataframe
-2025-08-04 21:29:41,704 - root - INFO - Categorical Columns:['gender', 'race_ethnicity', 'parental_level_of_education', 'lunch', 'test_preparation_course']
-2025-08-04 21:29:41,704 - root - INFO - Numerical Columns:['reading_score', 'writing_score']
-2025-08-04 21:29:41,766 - root - INFO - Saved preprocessing object
