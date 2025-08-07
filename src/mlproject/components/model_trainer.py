@@ -3,6 +3,10 @@ import sys
 from dataclasses import dataclass
 from urllib.parse import urlparse
 import numpy as np
+import mlflow
+import mlflow.sklearn
+import dagshub
+from urllib.parse import urlparse
 from sklearn.metrics import mean_squared_error,mean_absolute_error
 from catboost import CatBoostRegressor
 from sklearn.ensemble import (
@@ -27,6 +31,13 @@ class ModelTrainConfig:
 class ModelTrain:
     def __init__(self):
         self.modelTrainConfig = ModelTrainConfig()
+
+    def evaluation_metrics(self,y_test,y_pred):
+        mae = round(mean_absolute_error(y_test,y_pred),2)
+        mse = mean_squared_error(y_test,y_pred)
+        rmse = round(np.sqrt(mse),2)
+        R2_score = round(r2_score(y_test,y_pred),2)
+        return mae,rmse,R2_score
 
     def init_model_training(self,train_arr,test_arr):
         try:
@@ -80,11 +91,42 @@ class ModelTrain:
                         }
                     }
             
-            model_report,best_model = evaluate_models(x_train_arr,y_train_arr,x_test_arr,y_test_arr,models,params)
+            model_report,best_model,best_params = evaluate_models(x_train_arr,y_train_arr,x_test_arr,y_test_arr,models,params)
             logging.info('Receive models report and best model.')
 
             best_model_score = max(list(model_report.values()))
             best_model_name = list(model_report.keys())[list(model_report.values()).index(max(list(model_report.values())))]
+
+            # DAGsHub and MLflow init
+            dagshub.init(repo_owner='deepno1', repo_name='ML-Project', mlflow=True)
+            mlflow.set_registry_uri("https://dagshub.com/deepno1/ML-Project.mlflow")
+
+            # Optional
+            mlflow.set_experiment("regression_model_training")
+
+            tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+
+            with mlflow.start_run():
+                y_pre = best_model.predict(x_test_arr)
+                mae, rmse, R2_score = self.evaluation_metrics(y_test_arr, y_pre)
+
+                # Log all best model parameters
+                for param_name, param_value in best_params.items():
+                    mlflow.log_param(param_name, param_value)
+
+                # Log model name
+                mlflow.log_param("best_model", best_model_name)
+
+                # Log metrics
+                mlflow.log_metrics({
+                    "mae": mae,
+                    "rmse": rmse,
+                    "R2_score": R2_score
+                })
+
+                # Log the model itself
+                mlflow.sklearn.log_model(best_model, 'model')
+
 
             if best_model_score < 0.6:
                 raise CustomException("No best model found")

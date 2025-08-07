@@ -54,6 +54,7 @@ def evaluate_models(x_train_arr,y_train_arr,x_test_arr,y_test_arr,models,params)
         logging.info('Start evaluating models')
         report = {}
         best_model = None
+        best_params = None
         best_score = 0
 
         for i in range(len(list(models.keys()))):
@@ -74,8 +75,9 @@ def evaluate_models(x_train_arr,y_train_arr,x_test_arr,y_test_arr,models,params)
             if best_score < test_score:
                 best_score = test_score
                 best_model = model
+                best_params = gs.best_params_
 
-        return report,best_model
+        return report,best_model,best_params
 
 
     except Exception as e:
