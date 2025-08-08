@@ -8,12 +8,21 @@ import sys
 from src.mlproject.exception import CustomException
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 def load_model():
     try:
-        with open('artifacts/model.pkl','rb') as f:
+        with open('D:/Python Projects/Projects/MLops-Project/artifacts/model.pkl','rb') as f:
             model = pickle.load(f)
         return model
     except Exception as e:
@@ -21,7 +30,7 @@ def load_model():
 
 def preprocessing_obj():
     try:
-        with open('artifacts/preprocessing.pkl','rb') as f:
+        with open('D:/Python Projects/Projects/MLops-Project/artifacts/preprocessing.pkl','rb') as f:
             p_obj = pickle.load(f)
         return p_obj
     except Exception as e:
@@ -54,16 +63,17 @@ async def predict_async(model, processed_df):
     return result
 
 @app.post('/predict')
-async def prediction(input : InputConfig):
+async def prediction(input: InputConfig):
     try:
-        input = input.model_dump()
-        input_df = pd.DataFrame([input])
 
-        preprocessing = preprocessing_obj() 
+        input_dict = input.model_dump()
+        input_df = pd.DataFrame([input_dict])
+
+        preprocessing = preprocessing_obj()
         model = load_model()
 
         processed_df = preprocessing.transform(input_df)
-        # Run prediction asynchronously in thread pool
+
         predict_array = await predict_async(model, processed_df)
         predict = round(predict_array[0])
 
@@ -74,6 +84,7 @@ async def prediction(input : InputConfig):
         else:
             pass
 
-        return JSONResponse(status_code=200 , content = {'math_score' : predict})
+        return JSONResponse(status_code=200, content={'math_score': predict})
     except Exception as e:
-        raise HTTPException(status_code=400 , detail = str(e))
+        raise HTTPException(status_code=400, detail=str(e))
+
