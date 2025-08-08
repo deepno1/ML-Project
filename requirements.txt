@@ -8,3 +8,6 @@ xgboost
 catboost
 mlflow 
 dagshub
+fastapi
+pydantic
+asyncio

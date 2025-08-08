@@ -1,26 +1,79 @@
+from fastapi import FastAPI,HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel,Field
+from typing import Annotated,Literal
+import pickle
+import pandas as pd
 import sys
 from src.mlproject.exception import CustomException
-from src.mlproject.logger import logging
-from src.mlproject.components.data_ingestion import dataIngestion
-from src.mlproject.components.data_transformation import dataTransformation
-from src.mlproject.components.model_trainer import ModelTrain
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
-if __name__ == '__main__':
-    logging.info("The execution has started.")
+app = FastAPI()
 
+def load_model():
     try:
-        # data ingestion
-        data_ingestion = dataIngestion()
-        train_path, test_path = data_ingestion.init_ingestion()
-
-        # data transformation
-        data_transformation = dataTransformation()
-        transformed_train_df,transformed_test_df,file_path = data_transformation.data_transform(train_path,test_path)
-
-        # model training
-        model_train = ModelTrain()
-        r2_square = model_train.init_model_training(transformed_train_df,transformed_test_df)
-        print(r2_square)
-
+        with open('artifacts/model.pkl','rb') as f:
+            model = pickle.load(f)
+        return model
     except Exception as e:
         raise CustomException(e,sys)
+
+def preprocessing_obj():
+    try:
+        with open('artifacts/preprocessing.pkl','rb') as f:
+            p_obj = pickle.load(f)
+        return p_obj
+    except Exception as e:
+        raise CustomException(e,sys)
+    
+
+class InputConfig(BaseModel):
+
+    gender: Annotated[Literal['male','female'],Field(...,description="Gender of student.")]
+    race_ethnicity: Annotated[Literal['group B','group C','group A','group D','group E'],Field(...,description="Group of the student.")]
+    parental_level_of_education: Annotated[Literal["bachelor's degree",'some college',"master's degree","associate's degree",'high school','some high school'],Field(...,description="Parents edu info.")]
+    lunch: Annotated[Literal['standard','free/reduced'],Field(...,description="Lunch info of student.")]
+    test_preparation_course: Annotated[Literal['none','completed'],Field(...,description="info about course complition of student.")]
+    reading_score: Annotated[int,Field(...,gt=-1,lt=101,description="Student Reading Score.")]
+    writing_score: Annotated[int,Field(...,gt=-1,lt=101,description="Student writing Score.")]
+
+@app.get('/')
+async def root():
+    return 'Frontend'
+
+@app.get('/about')
+async def about():
+    return 'Frontend about section'
+
+executor = ThreadPoolExecutor()
+
+async def predict_async(model, processed_df):
+    loop = asyncio.get_running_loop()
+    result = await loop.run_in_executor(executor, model.predict, processed_df)
+    return result
+
+@app.post('/predict')
+async def prediction(input : InputConfig):
+    try:
+        input = input.model_dump()
+        input_df = pd.DataFrame([input])
+
+        preprocessing = preprocessing_obj() 
+        model = load_model()
+
+        processed_df = preprocessing.transform(input_df)
+        # Run prediction asynchronously in thread pool
+        predict_array = await predict_async(model, processed_df)
+        predict = round(predict_array[0])
+
+        if predict > 100:
+            predict = 100
+        elif predict < 0:
+            predict = 0
+        else:
+            pass
+
+        return JSONResponse(status_code=200 , content = {'math_score' : predict})
+    except Exception as e:
+        raise HTTPException(status_code=400 , detail = str(e))
